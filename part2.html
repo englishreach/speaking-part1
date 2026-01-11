@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C1 Speaking: Part 2 - Long Turn</title>
+    <style>
+        :root {
+            --cambridge-blue: #0072bc;
+            --bg: #f4f7f9;
+            --disabled: #94a3b8;
+            --success: #16a34a;
+            --amber: #b45309;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 850px; text-align: center; }
+        
+        h2 { color: var(--cambridge-blue); margin-top: 0; }
+        .instructions { background: #f1f5f9; padding: 15px; border-radius: 8px; text-align: left; font-size: 14px; line-height: 1.5; color: #334155; border-left: 4px solid var(--cambridge-blue); margin-bottom: 20px; }
+        
+        .prompt-box { background: #fffbeb; border: 1px solid #fef3c7; padding: 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; color: var(--amber); font-size: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        
+        .image-container { display: flex; gap: 15px; justify-content: center; margin: 25px 0; }
+        .exam-photo { width: 30%; border-radius: 8px; border: 3px solid #eee; height: 200px; object-fit: cover; transition: 0.3s; }
+        .exam-photo:hover { border-color: var(--cambridge-blue); }
+
+        #status-text { font-style: italic; color: #64748b; margin: 15px 0; font-weight: 500; }
+        .timer { font-size: 32px; font-weight: 800; color: var(--cambridge-blue); margin: 10px 0; font-variant-numeric: tabular-nums; }
+        
+        .mic-icon { width: 60px; height: 60px; background: #eee; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 24px; margin-bottom: 15px; }
+        .listening { background: #ff4b2b; color: white; box-shadow: 0 0 15px rgba(255, 75, 43, 0.4); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        
+        .btn { background: var(--cambridge-blue); color: white; border: none; padding: 16px 30px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; transition: 0.3s; }
+        .btn:disabled { background: var(--disabled); cursor: not-allowed; }
+        .btn-next { background: var(--success); margin-top: 20px; }
+
+        #live-commentary { margin-top: 15px; padding: 15px; background: #f8fafc; border-radius: 6px; min-height: 50px; font-size: 14px; border: 1px solid #e2e8f0; text-align: left; color: #475569; }
+        
+        #feedback-area { display: none; margin-top: 30px; text-align: left; padding: 25px; background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; }
+        .feedback-label { font-weight: 800; font-size: 12px; text-transform: uppercase; color: var(--success); display: block; margin-bottom: 10px; }
+        .tag-achieved { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin: 4px; font-weight: bold; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        
+        .tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .tip-item { font-size: 13px; line-height: 1.4; color: #334155; background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 3px solid #cbd5e1; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Speaking Part 2: Long Turn</h2>
+    
+    <div class="instructions">
+        <strong>Task Instructions:</strong> For this speaking part, you will be paired with another student. You will be talking solo for one minute about two pictures you choose from a set of three, comparing them and answering two questions written above the images; your partner then responds briefly (around 30 seconds) to a question about your pictures, and roles reverse. The topic today will be "Climate Change".
+    </div>
+
+    <div class="prompt-box">
+        Topic: Climate Change<br>
+        <span style="font-size: 15px; font-weight: normal; color: #475569;">
+            1. How are these human activities affecting the environment?<br>
+            2. How difficult might it be to change these behaviors in the future?
+        </span>
+    </div>
+
+    <div class="image-container">
+        <img src="photo1.jpg" alt="Activity 1" class="exam-photo">
+        <img src="photo2.jpg" alt="Activity 2" class="exam-photo">
+        <img src="photo3.jpg" alt="Activity 3" class="exam-photo">
+    </div>
+
+    <div id="status-text">Click Start to begin your 1-minute long turn</div>
+    <div id="timer" class="timer">60s</div>
+    <div id="mic" class="mic-icon">🎙️</div>
+    <button id="start-btn" class="btn" onclick="initMic()">START TASK</button>
+    
+    <div id="live-commentary">Waiting for speech...</div>
+
+    <div id="feedback-area">
+        <span class="feedback-label">C1 Advanced Connectors Recognized:</span>
+        <div id="achieved-list"></div>
+
+        <div class="tips-grid">
+            <div class="tip-item"><strong>Compare, Don't Just Describe:</strong> Use phrases like "Both pictures show..." or "One similarity is...".</div>
+            <div class="tip-item"><strong>Answer the Questions:</strong> Address the written prompts; don't just talk about what you see.</div>
+            <div class="tip-item"><strong>Speculate & Give Opinions:</strong> Use language like "I'd argue...", "Perhaps...", or "From what I can see...".</div>
+            <div class="tip-item"><strong>Practice Timing:</strong> Aim for a full minute of speaking.</div>
+        </div>
+
+        <button class="btn btn-next" onclick="window.location.href='part3.html'">
+            GO TO PART 3 →
+        </button>
+    </div>
+</div>
+
+<script>
+    const masterBank = [
+        "the similarities", "the difference", "in the sense", "biggest difference", 
+        "while", "common feature", "going to compare", "both photos", 
+        "chosen the photograph", "image on the right", "image on the left",
+        "whereas", "on the other hand", "alternatively", "might be", 
+        "could be", "seems to", "appears", "likewise", "unlike", "contrast"
+    ];
+
+    let timeLeft = 60;
+    let timerInterval;
+    let foundMarkers = new Set();
+    const synth = window.speechSynthesis;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-GB';
+
+    recognition.onresult = (event) => {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript.toLowerCase();
+            if (event.results[i].isFinal) {
+                masterBank.forEach(m => { if (transcript.includes(m)) foundMarkers.add(m); });
+            } else { interim += transcript; }
+        }
+        document.getElementById('live-commentary').innerText = interim;
+    };
+
+    async function initMic() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(t => t.stop());
+            startTask();
+        } catch (e) { alert("Microphone access is required for this task."); }
+    }
+
+    function startTask() {
+        document.getElementById('start-btn').disabled = true;
+        const msg = "In this part of the test, I’m going to give you three pictures. I’d like you to talk about two of them on your own for about a minute. Please start now.";
+        const utter = new SpeechSynthesisUtterance(msg);
+        utter.lang = 'en-GB';
+        utter.rate = 0.95;
+        
+        document.getElementById('status-text').innerText = "Examiner is speaking...";
+        
+        utter.onend = () => {
+            try { recognition.start(); } catch(e) {}
+            document.getElementById('mic').classList.add('listening');
+            document.getElementById('status-text').innerText = "Your 1-minute turn has started!";
+            runTimer();
+        };
+        synth.speak(utter);
+    }
+
+    function runTimer() {
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = timeLeft + "s";
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                finishTask();
+            }
+        }, 1000);
+    }
+
+    function finishTask() {
+        recognition.stop();
+        document.getElementById('mic').classList.remove('listening');
+        document.getElementById('status-text').innerText = "Time is up. Thank you.";
+        document.getElementById('feedback-area').style.display = 'block';
+        
+        const list = document.getElementById('achieved-list');
+        if(foundMarkers.size > 0) {
+            list.innerHTML = Array.from(foundMarkers).map(m => `<span class="tag-achieved">${m.toUpperCase()}</span>`).join('');
+        } else {
+            list.innerHTML = "<em style='font-size:12px; color:#94a3b8;'>No comparative phrases detected. Remember to use full sentences to link your ideas.</em>";
+        }
+    }
+</script>
+</body>
+</html>
