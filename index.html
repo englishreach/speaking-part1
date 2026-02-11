@@ -1,27 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C1 Speaking: Part 1</title>
     <style>
         :root {
             --cambridge-blue: #0072bc;
             --bg: #f4f7f9;
             --disabled: #94a3b8;
             --success: #16a34a;
+            --danger: #dc2626;
         }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 550px; text-align: center; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 550px; text-align: center; position: relative; }
         h2 { color: var(--cambridge-blue); margin-top: 0; }
+        
+        /* Updated Timer Styles */
+        #timer-container { 
+            display: none; position: absolute; top: 20px; right: 20px; 
+            width: 55px; height: 55px; align-items: center; justify-content: center; 
+            border: 3px solid var(--cambridge-blue); border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        #timer-text { font-weight: bold; color: var(--cambridge-blue); font-size: 18px; }
+        .timer-warning { border-color: var(--danger) !important; animation: shake 0.5s infinite; }
+        .timer-warning #timer-text { color: var(--danger) !important; }
+
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(2px); } 75% { transform: translateX(-2px); } 100% { transform: translateX(0); } }
+
         #status-text { font-style: italic; color: #666; margin: 20px 0; min-height: 1.2em; font-weight: 500; }
         .mic-container { margin: 15px 0; }
         .mic-icon { width: 70px; height: 70px; background: #eee; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 28px; transition: 0.3s; }
         .listening { background: #ff4b2b; color: white; box-shadow: 0 0 20px rgba(255, 75, 43, 0.5); animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        .btn { background: var(--cambridge-blue); color: white; border: none; padding: 14px 30px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; transition: background 0.3s; margin-bottom: 5px; }
+        
+        .btn { background: var(--cambridge-blue); color: white; border: none; padding: 14px 30px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; transition: background 0.3s; margin-bottom: 10px; }
         .btn:disabled { background: var(--disabled); cursor: not-allowed; opacity: 0.8; }
-        #live-commentary { margin-top: 15px; padding: 12px; background: #f8fafc; border-radius: 6px; min-height: 60px; font-size: 14px; color: #334155; border: 1px solid #e2e8f0; text-align: left; line-height: 1.5; }
+        #sample-btn { background: var(--success); display: none; }
+
+        #live-commentary { margin-top: 15px; padding: 12px; background: #f8fafc; border-radius: 6px; min-height: 40px; font-size: 14px; color: #334155; border: 1px solid #e2e8f0; text-align: left; line-height: 1.5; }
+        #sample-display { display: none; margin-top: 15px; padding: 15px; background: #f0fdf4; border-left: 4px solid var(--success); text-align: left; font-size: 14px; color: #166534; line-height: 1.6; border-radius: 0 6px 6px 0; }
         #feedback-area { display: none; margin-top: 25px; text-align: left; padding: 20px; background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; }
         .feedback-label { font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px; color: var(--success); }
         .tag-achieved { display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 11px; margin-right: 6px; margin-top: 6px; font-weight: bold; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
@@ -31,76 +47,99 @@
 <body>
 
 <div class="card">
+    <div id="timer-container"><span id="timer-text">25</span></div>
+    
     <h2>Speaking Part 1</h2>
     <p>Social Interview (2 Minutes)</p>
     <div id="status-text">Click Start to meet the A.I. Examiner</div>
-    <div class="mic-container"><div id="mic" class="mic-icon">🎙️</div></div>
-    <button id="start-btn" class="btn" onclick="initMic()">START EXAM</button>
+    
+    <div class="mic-container">
+        <div id="mic" class="mic-icon">🎙️</div>
+    </div>
+
+    <button id="start-btn" class="btn" onclick="startExam()">START EXAM</button>
+    <button id="sample-btn" class="btn" onclick="showSample()">💡 VIEW SAMPLE ANSWER</button>
+    
+    <div id="sample-display"></div>
     <div id="live-commentary">Waiting for speech...</div>
 
     <div id="feedback-area">
-        <div class="feedback-section">
-            <span class="feedback-label">Natural Connectors Recognized:</span>
-            <div id="achieved-list"></div>
-        </div>
+        <span class="feedback-label">Natural Connectors Recognized:</span>
+        <div id="achieved-list"></div>
         <div class="eval-box">
             <strong>Exam Requirements:</strong><br>
             In this part of the C1 Advanced test, examiners look for your ability to link ideas and use general social language to talk about yourself, your interests, work and future plans (although topics may vary), focusing on fluency, coherence, vocabulary and grammar. You need to give full, natural answers, not just one-word responses and show good pronunciation that is generally intelligible.
-        </div>
-        
-        <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
-            <button class="btn" onclick="window.location.href='part2.html'" style="background: #16a34a; width: 100%;">
-                GO TO PART 2 →
-            </button>
         </div>
     </div>
 </div>
 
 <script>
-    const questions = [
-        "First of all, we'd like to know something about you. Where are you from?",
-        "What do you enjoy most about the area where you live?",
-        "Do you prefer to spend your free time alone or with other people? Why?",
-        "How important is it to speak more than one language in today's world?"
+    const examData = [
+        {
+            q: "First of all, we'd like to know something about you. Where are you from?",
+            a: "Well, originally I’m from a small town in the north of Italy, but I've been living in a bigger city for a few years now because of my studies. I really like my hometown because it’s very quiet, but at the same time, I enjoy the excitement of living in a more busy place."
+        },
+        {
+            q: "What do you enjoy most about the area where you live?",
+            a: "The thing I like most is that there are a lot of local cafes and parks where I can hang out with my friends. It's a very friendly neighborhood and everything is quite close, so I don't really need to use my car much. I think having green spaces nearby is really important for relaxing."
+        },
+        {
+            q: "Do you prefer to spend your free time alone or with other people? Why?",
+            a: "To be honest, it usually depends on how my week was. If I've been very busy at work, I sometimes prefer to stay at home and watch a movie by myself to recharge. But generally, I'm quite a social person and I love going out for dinner or just chatting with people."
+        },
+        {
+            q: "How important is it to speak more than one language in today's world?",
+            a: "I think it’s actually essential nowadays. Most jobs require you to speak English at a good level, but also, it's great for when you travel. It makes the experience much better when you can talk to the locals and understand their culture instead of just staying in the tourist areas."
+        }
     ];
 
-    const masterBank = ["important", "think", "originally", "currently", "enjoy", "useful", "prefer", "always", "necessarily", "create", "would like to", "represent", "as well as", "despite this", "therefore", "hand", "due to", "instance", "such as", "opinion", "although"];
+    const masterBank = ["important", "think", "originally", "currently", "enjoy", "prefer", "necessarily", "would like to", "as well as", "despite this", "therefore", "due to", "such as", "opinion", "although"];
 
     let currentQ = 0;
     let foundMarkers = new Set();
+    let countdownInterval;
+    
     const status = document.getElementById('status-text');
     const mic = document.getElementById('mic');
     const startBtn = document.getElementById('start-btn');
-    const feedbackArea = document.getElementById('feedback-area');
-    const achievedList = document.getElementById('achieved-list');
-    const commentary = document.getElementById('live-commentary');
+    const sampleBtn = document.getElementById('sample-btn');
+    const sampleDisplay = document.getElementById('sample-display');
+    const timerContainer = document.getElementById('timer-container');
+    const timerText = document.getElementById('timer-text');
 
     const synth = window.speechSynthesis;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = 'en-GB';
 
     recognition.onresult = (event) => {
-        let interimTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript.toLowerCase();
-            if (event.results[i].isFinal) {
-                masterBank.forEach(marker => { if (transcript.includes(marker)) foundMarkers.add(marker); });
-            } else { interimTranscript += transcript; }
-        }
-        if (interimTranscript !== '') commentary.innerText = interimTranscript;
+        let transcript = Array.from(event.results).map(r => r[0].transcript).join('').toLowerCase();
+        masterBank.forEach(m => { if(transcript.includes(m)) foundMarkers.add(m); });
+        document.getElementById('live-commentary').innerText = transcript;
     };
 
-    async function initMic() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            stream.getTracks().forEach(track => track.stop());
-            startExam();
-        } catch (e) {
-            status.innerText = "Please allow microphone access in your browser.";
-        }
+    function startTimer(seconds) {
+        let timeLeft = seconds;
+        timerContainer.style.display = 'flex';
+        timerContainer.classList.remove('timer-warning');
+        timerText.innerText = timeLeft;
+        
+        clearInterval(countdownInterval);
+        countdownInterval = setInterval(() => {
+            timeLeft--;
+            timerText.innerText = timeLeft;
+
+            if (timeLeft <= 5) {
+                timerContainer.classList.add('timer-warning');
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                currentQ++;
+                nextQuestion();
+            }
+        }, 1000);
     }
 
     function speak(text, callback) {
@@ -113,51 +152,45 @@
 
     function startExam() {
         startBtn.disabled = true;
-        startBtn.innerText = "EXAM IN PROGRESS...";
         nextQuestion();
     }
 
     function nextQuestion() {
-        if (currentQ < questions.length) {
+        sampleBtn.style.display = "none";
+        sampleDisplay.style.display = "none";
+        timerContainer.style.display = 'none';
+
+        if (currentQ < examData.length) {
             status.innerText = "A.I. Examiner is speaking...";
             mic.classList.remove('listening');
-            commentary.innerText = "Wait for question...";
-            
-            // Stop mic to give AI full system resources for high-quality audio
-            try { recognition.stop(); } catch(e) {}
+            recognition.stop();
 
-            speak(questions[currentQ], () => {
-                status.innerText = "Your turn (25 seconds)...";
-                commentary.innerText = "Listening...";
+            speak(examData[currentQ].q, () => {
+                status.innerText = "Your turn...";
+                sampleBtn.style.display = "block";
                 mic.classList.add('listening');
-                
-                // Restart mic for student response
                 try { recognition.start(); } catch(e) {}
-                
-                setTimeout(() => { 
-                    currentQ++; 
-                    nextQuestion(); 
-                }, 25000);
+                startTimer(25);
             });
-        } else { finishExam(); }
+        } else {
+            finishExam();
+        }
+    }
+
+    function showSample() {
+        sampleDisplay.innerHTML = `<strong>Realistic Model Answer:</strong><br>${examData[currentQ].a}`;
+        sampleDisplay.style.display = "block";
     }
 
     function finishExam() {
-        status.innerText = "Interview Complete.";
+        status.innerText = "Practice Complete.";
         mic.classList.remove('listening');
-        try { recognition.stop(); } catch(e) {}
-        
-        startBtn.innerText = "FINISHED";
-        startBtn.style.background = "#94a3b8";
-        feedbackArea.style.display = 'block';
-        
-        if (foundMarkers.size > 0) {
-            achievedList.innerHTML = Array.from(foundMarkers).map(m => `<span class="tag-achieved">${m.toUpperCase()}</span>`).join('');
-        } else {
-            achievedList.innerHTML = "<em style='font-size:12px; color:#94a3b8;'>Natural flow detected. Remember to use full sentences to link your ideas.</em>";
-        }
+        recognition.stop();
+        timerContainer.style.display = 'none';
+        document.getElementById('feedback-area').style.display = 'block';
+        document.getElementById('achieved-list').innerHTML = Array.from(foundMarkers).map(m => `<span class="tag-achieved">${m.toUpperCase()}</span>`).join('');
     }
 </script>
-</body>
 
+</body>
 </html>
